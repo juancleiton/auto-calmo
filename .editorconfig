@@ -1,0 +1,16 @@
+root = true
+
+[*]
+
+# Faz com que a identação seja por espaços e tamanho em espaços
+indent_style = space
+indent_size = 2
+
+# Padroniza os caracteres usados nos editores
+charset = utf-8
+
+# Remove os espaços que ficam no final de uma linha
+trim_trailing_whitespace = true
+
+# Insere uma linha em branco no final do arquivo
+insert_final_newline = false
