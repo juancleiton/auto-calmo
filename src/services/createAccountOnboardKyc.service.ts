@@ -16,7 +16,6 @@ export class CreateAccountOnboardKycService {
   }: IInputCreateAccountOnboardKyc): Promise<any> {
     const instancePagol = await this.instances.getPagol();
     const instanceQaTools = await this.instances.getQaTools();
-    const instanceKeycloak = await this.instances.getKeycloak();
 
     await instanceQaTools.post(
       `/mocks/idwall/mockmanagement/onboarding2/mocksCpf?matriz=${mocks.matrizKyc}&type=${mocks.typeReportKyc}`,
@@ -35,7 +34,7 @@ export class CreateAccountOnboardKycService {
       client_id: process.env.KEYCLOAK_CLIENT_ID,
     });
 
-    const { data: responseLogin } = await instanceKeycloak.post(
+    const { data: responseLogin } = await instancePagol.post(
       `/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
       bodyLogin,
       {

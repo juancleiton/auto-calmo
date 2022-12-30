@@ -15,8 +15,15 @@ export interface IInputCreateAccountOnboardBgc {
     email: string;
   };
   mocks: {
-    matrizBgc: string;
-    typeReportBgc: string;
+    idwall: {
+      matrizBgc: string;
+      typeReportBgc: string;
+    };
+    incognia: {
+      installationId: string;
+      typeLogin: string;
+      typeOnboardAndRecoverPassword: string;
+    };
   };
 }
 

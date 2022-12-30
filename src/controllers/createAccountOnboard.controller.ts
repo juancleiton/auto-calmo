@@ -8,7 +8,14 @@ export class CreateAccountOnboardController {
     try {
       const {
         account: { taxIdentifier, bornAt, cellphone, email, name },
-        mocks: { matrizBgc, typeReportBgc },
+        mocks: {
+          idwall: { matrizBgc, typeReportBgc },
+          incognia: {
+            installationId,
+            typeLogin,
+            typeOnboardAndRecoverPassword,
+          },
+        },
       } = request.body;
 
       const createAccountOnboardService = new CreateAccountOnboardBgcService();
@@ -21,8 +28,15 @@ export class CreateAccountOnboardController {
           name,
         },
         mocks: {
-          matrizBgc,
-          typeReportBgc,
+          idwall: {
+            matrizBgc,
+            typeReportBgc,
+          },
+          incognia: {
+            installationId,
+            typeLogin,
+            typeOnboardAndRecoverPassword,
+          },
         },
       });
       response.status(200).json({
