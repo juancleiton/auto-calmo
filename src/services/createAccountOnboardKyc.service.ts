@@ -1,6 +1,7 @@
 import qs from 'qs';
 import { IInputCreateAccountOnboardKyc } from '@/types/interfaces';
 import { Instances } from './instances.service';
+import { CheckStatusBgc, OnboardPhases } from '@/enums/onboard';
 
 export class CreateAccountOnboardKycService {
   private instances: Instances;
@@ -12,36 +13,34 @@ export class CreateAccountOnboardKycService {
   async execute({
     deviceId,
     account,
-    mocks,
+    mocks: { idwall, incognia },
   }: IInputCreateAccountOnboardKyc): Promise<any> {
     const instancePagol = await this.instances.getPagol();
     const instanceQaTools = await this.instances.getQaTools();
 
+    const CODE_TOKEN = '112233';
+    const PASSWORD_DEFAULT = 'Pass112233';
+    const PIN_DEFAULT = '147258';
+
+    // Criar Mock QATools Idwall KYC
     await instanceQaTools.post(
-      `/mocks/idwall/mockmanagement/onboarding2/mocksCpf?matriz=${mocks.matrizKyc}&type=${mocks.typeReportKyc}`,
+      `/mocks/idwall/mockmanagement/onboarding2/mocksCpf?matriz=${idwall.matrizKyc}&type=${idwall.typeReportKyc}`,
       [
         {
           cpf: account.taxIdentifier,
-          validacoes: mocks.validations,
+          validacoes: idwall.validations,
         },
       ],
     );
 
-    const bodyLogin = qs.stringify({
-      username: account.taxIdentifier,
-      password: 'Pass112233',
-      grant_type: process.env.KEYCLOAK_GRANT_TYPE,
-      client_id: process.env.KEYCLOAK_CLIENT_ID,
+    // Fazendo Login
+    const { data: responseLogin } = await instancePagol.post(`/auth/token`, {
+      taxIdentifier: account.taxIdentifier,
+      password: PASSWORD_DEFAULT,
+      installationId: incognia.installationId,
     });
 
-    const { data: responseLogin } = await instancePagol.post(
-      `/auth/realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/token`,
-      bodyLogin,
-      {
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      },
-    );
-
+    // Checando situação da conta
     const { data: responseCheckStatus } = await instancePagol.get(
       `/v3/onboarding/check-status-bgc/${account.id}`,
       {
@@ -57,19 +56,29 @@ export class CreateAccountOnboardKycService {
 
     const { onboard, status, account: accountFound } = responseCheckStatus;
 
-    const { data: responseKyc } = await instancePagol.post(
-      `/v3/onboarding/report-kyc`,
-      {
-        tokenSdk: 'sdk-bf415b74-e07e-48cf-a700-3e5ad810e2f6',
-        accountId: account.id,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${responseLogin.access_token}`,
-          'device-id': deviceId,
-        },
-      },
-    );
+    // Travas para onboard 1
+    if (
+      onboard === OnboardPhases.ACCOUNT_ORDINARY &&
+      status !== CheckStatusBgc.OK
+    ) {
+      throw new Error(
+        `Esta conta ainda não está ordinária aprovada. Onboard ${onboard} e status ${status}`,
+      );
+    }
+
+    // Travas para onboard 2
+    if (
+      onboard === OnboardPhases.UNLIMITED_ACCOUNT &&
+      [
+        CheckStatusBgc.OK,
+        CheckStatusBgc.REPROVED,
+        CheckStatusBgc.BLOCKED,
+      ].includes(status)
+    ) {
+      throw new Error(
+        `Esta conta não pode fazer a jornada 2. Onboard ${onboard} e status ${status}`,
+      );
+    }
 
     await instancePagol.put(
       `/onboarding/account/${account.id}/update`,
@@ -84,6 +93,20 @@ export class CreateAccountOnboardKycService {
         gender: 'M',
         onboardSteps: 6,
         finished: false,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${responseLogin.access_token}`,
+          'device-id': deviceId,
+        },
+      },
+    );
+
+    const { data: responseKyc } = await instancePagol.post(
+      `/v3/onboarding/report-kyc`,
+      {
+        tokenSdk: 'sdk-bf415b74-e07e-48cf-a700-3e5ad810e2f6',
+        accountId: account.id,
       },
       {
         headers: {

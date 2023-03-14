@@ -56,7 +56,10 @@ export class CreateAccountOnboardController {
       const {
         deviceId,
         account: { id, taxIdentifier },
-        mocks: { matrizKyc, typeReportKyc, validations },
+        mocks: {
+          idwall: { matrizKyc, typeReportKyc, validations },
+        },
+        incognia: { installationId },
       } = request.body;
 
       const createAccountOnboardKycService =
@@ -65,9 +68,14 @@ export class CreateAccountOnboardController {
         deviceId,
         account: { id, taxIdentifier },
         mocks: {
-          matrizKyc,
-          typeReportKyc,
-          validations,
+          idwall: {
+            matrizKyc,
+            typeReportKyc,
+            validations,
+          },
+          incognia: {
+            installationId,
+          },
         },
       });
 

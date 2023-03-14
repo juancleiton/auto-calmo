@@ -110,10 +110,10 @@ export class CreateAccountOnboardBgcService {
       `/onboarding/validate-email?value=${account.email}`,
     );
 
-    await instancePagol.post(`/onboarding/validate-token-email`, {
-      code: CODE_TOKEN,
-      email: account.email,
-    });
+    // await instancePagol.post(`/onboarding/validate-token-email`, {
+    //   code: CODE_TOKEN,
+    //   email: account.email,
+    // });
 
     const { data } = await instancePagol.put(
       `/onboarding/account/${responseValidateDocument.accountId}/create-user`,
@@ -121,7 +121,7 @@ export class CreateAccountOnboardBgcService {
         metadata: {
           deviceInfo: {
             carrier: 'TIM',
-            deviceId: 'bd9bc93ab2145d25',
+            deviceId,
             deviceType: 1,
             platform: 'android',
             manufacturer: 'motorola',
@@ -149,7 +149,7 @@ export class CreateAccountOnboardBgcService {
         },
         login: account.taxIdentifier,
         tokenSms: CODE_TOKEN,
-        tokenEmail: CODE_TOKEN,
+        tokenEmail: null, //CODE_TOKEN,
         password: PASSWORD_DEFAULT,
         name: account.name,
         cellphone: account.cellphone,

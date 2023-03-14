@@ -34,9 +34,14 @@ export interface IInputCreateAccountOnboardKyc {
     taxIdentifier: string;
   };
   mocks: {
-    matrizKyc: string;
-    typeReportKyc: string;
-    validations: IValidationsKyc[];
+    idwall: {
+      matrizKyc: string;
+      typeReportKyc: string;
+      validations: IValidationsKyc[];
+    };
+    incognia: {
+      installationId: string;
+    };
   };
 }
 
